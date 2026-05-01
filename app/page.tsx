@@ -1,9 +1,10 @@
+import Image from "next/image";
 import Link from "next/link";
 
 export default function Home() {
   return (
     <main className="min-h-screen bg-[#f3f3f3] text-[#1f1f1f]">
-      <header className="sticky top-0 z-50 border-b border-black/10 bg-white/95 backdrop-blur shadow-sm">
+      <header className="sticky top-0 z-50 border-b border-black/10 bg-white/95 shadow-sm backdrop-blur">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
           <div className="text-lg font-semibold tracking-tight">CoachBase</div>
 
@@ -74,18 +75,19 @@ export default function Home() {
           </div>
 
           <div className="card card-padding-lg">
-            <div className="rounded-2xl border border-black/10 bg-[#dbe7cf] p-6">
-              <div className="aspect-[4/3] rounded-xl border border-black/10 bg-[linear-gradient(180deg,#dbe7cf_0%,#d2e0c2_100%)] p-4">
-                <div className="flex h-full items-center justify-center rounded-lg border-2 border-white/80">
-                  <div className="flex h-[80%] w-[80%] items-center justify-center rounded-md border-2 border-white/80">
-                    <div className="h-20 w-20 rounded-full border-2 border-white/80" />
-                  </div>
-                </div>
+            <div className="rounded-2xl border border-black/10 bg-white p-4">
+              <div className="relative aspect-[4/3] overflow-hidden rounded-xl border border-black/10">
+                <Image
+                  src="/football-pitch.png"
+                  alt="Fotballbane illustrasjon"
+                  fill
+                  className="object-cover"
+                  priority
+                />
               </div>
 
               <p className="mt-4 text-sm text-black/55">
-                Plassholder for baneillustrasjon. Denne kan senere byttes med din
-                egen grafikk eller et faktisk hero-bilde.
+                Visualiser økter, øvelser og banestruktur i CoachBase.
               </p>
             </div>
           </div>
