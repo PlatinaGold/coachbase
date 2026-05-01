@@ -78,7 +78,7 @@ export default function Home() {
             <div className="rounded-2xl border border-black/10 bg-white p-4">
               <div className="relative aspect-[4/3] overflow-hidden rounded-xl border border-black/10">
                 <Image
-                  src="/football-pitch.png"
+                  src="/landing-pic.png"
                   alt="Fotballbane illustrasjon"
                   fill
                   className="object-cover"
