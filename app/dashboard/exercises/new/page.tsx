@@ -1,0 +1,237 @@
+"use client";
+
+import { useState } from "react";
+import { supabase } from "@/lib/supabase";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+
+export default function NewExercisePage() {
+  const router = useRouter();
+
+  const [title, setTitle] = useState("");
+  const [ageGroup, setAgeGroup] = useState("");
+  const [focusArea, setFocusArea] = useState("");
+  const [difficulty, setDifficulty] = useState("");
+  const [players, setPlayers] = useState("");
+  const [duration, setDuration] = useState("");
+  const [equipment, setEquipment] = useState("");
+  const [explanation, setExplanation] = useState("");
+  const [coachingPoints, setCoachingPoints] = useState("");
+  const [organization, setOrganization] = useState("");
+
+  const [message, setMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  async function handleCreateExercise(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+
+    setLoading(true);
+    setMessage("");
+    setErrorMessage("");
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      setErrorMessage("Du må være logget inn.");
+      setLoading(false);
+      return;
+    }
+
+    const { error } = await supabase.from("exercises").insert({
+      user_id: user.id,
+      is_public: false,
+      title,
+      age_group: ageGroup || null,
+      focus_area: focusArea || null,
+      difficulty: difficulty || null,
+      players: players || null,
+      duration: duration ? Number(duration) : null,
+      equipment: equipment || null,
+      explanation: explanation || null,
+      coaching_points: coachingPoints || null,
+      organization: organization || null,
+    });
+
+    if (error) {
+      setErrorMessage(error.message);
+      setLoading(false);
+      return;
+    }
+
+    setMessage("Øvelsen ble opprettet.");
+    setLoading(false);
+
+    setTimeout(() => {
+      router.push("/dashboard/exercises");
+    }, 800);
+  }
+
+  return (
+    <section className="page-section-narrow">
+      <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+        <div>
+          <h1 className="page-title">Ny øvelse</h1>
+          <p className="page-subtitle">
+            Lag en egen øvelse og lagre den på brukeren din.
+          </p>
+        </div>
+
+        <Link href="/dashboard/exercises" className="secondary-button">
+          Tilbake
+        </Link>
+      </div>
+
+      <div className="card card-padding-lg mt-10">
+        <form onSubmit={handleCreateExercise} className="grid gap-4">
+          <div>
+            <label htmlFor="title" className="field-label">
+              Tittel
+            </label>
+            <input
+              id="title"
+              type="text"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              className="input-field"
+              required
+            />
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2">
+            <div>
+              <label htmlFor="ageGroup" className="field-label">
+                Alder
+              </label>
+              <input
+                id="ageGroup"
+                type="text"
+                value={ageGroup}
+                onChange={(e) => setAgeGroup(e.target.value)}
+                className="input-field"
+                placeholder="5–8 år"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="focusArea" className="field-label">
+                Fokusområde
+              </label>
+              <input
+                id="focusArea"
+                type="text"
+                value={focusArea}
+                onChange={(e) => setFocusArea(e.target.value)}
+                className="input-field"
+                placeholder="Føring"
+              />
+            </div>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-3">
+            <div>
+              <label htmlFor="difficulty" className="field-label">
+                Nivå
+              </label>
+              <input
+                id="difficulty"
+                type="text"
+                value={difficulty}
+                onChange={(e) => setDifficulty(e.target.value)}
+                className="input-field"
+                placeholder="Enkel"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="players" className="field-label">
+                Spillere
+              </label>
+              <input
+                id="players"
+                type="text"
+                value={players}
+                onChange={(e) => setPlayers(e.target.value)}
+                className="input-field"
+                placeholder="6–12"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="duration" className="field-label">
+                Varighet
+              </label>
+              <input
+                id="duration"
+                type="number"
+                value={duration}
+                onChange={(e) => setDuration(e.target.value)}
+                className="input-field"
+                placeholder="15"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label htmlFor="equipment" className="field-label">
+              Utstyr
+            </label>
+            <input
+              id="equipment"
+              type="text"
+              value={equipment}
+              onChange={(e) => setEquipment(e.target.value)}
+              className="input-field"
+              placeholder="Kjegler, baller, vester"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="explanation" className="field-label">
+              Forklaring
+            </label>
+            <textarea
+              id="explanation"
+              value={explanation}
+              onChange={(e) => setExplanation(e.target.value)}
+              className="textarea-field"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="coachingPoints" className="field-label">
+              Coachingpunkter
+            </label>
+            <textarea
+              id="coachingPoints"
+              value={coachingPoints}
+              onChange={(e) => setCoachingPoints(e.target.value)}
+              className="textarea-field"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="organization" className="field-label">
+              Organisering
+            </label>
+            <textarea
+              id="organization"
+              value={organization}
+              onChange={(e) => setOrganization(e.target.value)}
+              className="textarea-field"
+            />
+          </div>
+
+          <button type="submit" disabled={loading} className="primary-button">
+            {loading ? "Lagrer..." : "Opprett øvelse"}
+          </button>
+        </form>
+
+        {message && <p className="success-message mt-4">{message}</p>}
+        {errorMessage && <p className="error-message mt-4">{errorMessage}</p>}
+      </div>
+    </section>
+  );
+}

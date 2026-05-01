@@ -1,0 +1,147 @@
+@import "tailwindcss";
+
+:root {
+  --background: #f3f3f3;
+  --foreground: #1f1f1f;
+  --card: #ffffff;
+  --muted: #6b7280;
+  --border: rgba(0, 0, 0, 0.1);
+  --primary: #111111;
+  --primary-hover: #222222;
+  --danger-bg: #fef2f2;
+  --danger-border: #fca5a5;
+  --danger-text: #b91c1c;
+  --success-bg: #f0fdf4;
+  --success-border: #86efac;
+  --success-text: #166534;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+}
+
+/* Felles layout */
+.page-section {
+  @apply mx-auto max-w-6xl px-6 pb-20 pt-16;
+}
+
+.page-section-narrow {
+  @apply mx-auto max-w-4xl px-6 pb-20 pt-16;
+}
+
+/* Kort */
+.card {
+  @apply rounded-2xl border bg-white shadow-sm;
+  border-color: var(--border);
+}
+
+.card-soft {
+  @apply rounded-xl border bg-[#fafafa] p-5;
+  border-color: var(--border);
+}
+
+.card-padding {
+  @apply p-6;
+}
+
+.card-padding-lg {
+  @apply p-8;
+}
+
+/* Knapper */
+.primary-button {
+  @apply rounded-xl px-4 py-3 text-sm text-white transition;
+  background: var(--primary);
+}
+
+.primary-button:hover {
+  background: var(--primary-hover);
+}
+
+.secondary-button {
+  @apply rounded-xl border px-4 py-3 text-sm transition hover:bg-black/5;
+  border-color: rgba(0, 0, 0, 0.15);
+}
+
+.danger-button {
+  @apply rounded-xl border px-4 py-3 text-sm transition;
+  background: var(--danger-bg);
+  border-color: var(--danger-border);
+  color: var(--danger-text);
+}
+
+.danger-button:hover {
+  background: #fee2e2;
+}
+
+/* Inputs */
+.field-label {
+  @apply mb-2 block text-sm font-medium;
+}
+
+.input-field {
+  @apply w-full rounded-xl border px-4 py-3 outline-none;
+  border-color: rgba(0, 0, 0, 0.2);
+  background: white;
+}
+
+.input-field:focus {
+  border-color: rgba(0, 0, 0, 1);
+}
+
+.textarea-field {
+  @apply min-h-[120px] w-full rounded-xl border px-4 py-3 outline-none;
+  border-color: rgba(0, 0, 0, 0.2);
+  background: white;
+}
+
+.textarea-field:focus {
+  border-color: rgba(0, 0, 0, 1);
+}
+
+.select-field {
+  @apply w-full rounded-xl border px-4 py-3 outline-none;
+  border-color: rgba(0, 0, 0, 0.2);
+  background: white;
+}
+
+.select-field:focus {
+  border-color: rgba(0, 0, 0, 1);
+}
+
+/* Meldinger */
+.success-message {
+  @apply rounded-xl border px-4 py-3 text-sm;
+  background: var(--success-bg);
+  border-color: var(--success-border);
+  color: var(--success-text);
+}
+
+.error-message {
+  @apply rounded-xl border px-4 py-3 text-sm;
+  background: var(--danger-bg);
+  border-color: rgba(220, 38, 38, 0.3);
+  color: var(--danger-text);
+}
+
+/* Tekst */
+.page-title {
+  @apply text-4xl font-bold;
+}
+
+.page-subtitle {
+  @apply mt-3 text-lg text-black/70;
+}
+
+.section-title {
+  @apply text-2xl font-semibold;
+}
+
+.meta-label {
+  @apply text-sm font-medium uppercase tracking-wide text-black/50;
+}
