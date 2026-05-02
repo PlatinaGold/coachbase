@@ -121,29 +121,23 @@ export default function DashboardPage() {
           </div>
 
           {loading ? (
-  <p className="mt-6 text-black/70">Laster økter...</p>
-) : latestSessions.length === 0 ? (
-  <div className="mt-6 rounded-xl border border-dashed border-black/15 bg-[#fafafa] p-6">
-    <h3 className="text-lg font-semibold">Ingen økter ennå</h3>
-    <p className="mt-2 text-black/70">
-      Start med å opprette din første økt, og bygg den opp med øvelser fra banken.
-    </p>
-    <div className="mt-4 flex flex-wrap gap-3">
-      <Link
-        href="/dashboard/sessions"
-        className="primary-button"
-      >
-        Opprett første økt
-      </Link>
-      <Link
-        href="/dashboard/exercises"
-        className="secondary-button"
-      >
-        Se øvelsesbank
-      </Link>
-    </div>
-  </div>
-) : (
+            <p className="mt-6 text-black/70">Laster økter...</p>
+          ) : latestSessions.length === 0 ? (
+            <div className="mt-6 rounded-xl border border-dashed border-black/15 bg-[#fafafa] p-6">
+              <h3 className="text-lg font-semibold">Ingen økter ennå</h3>
+              <p className="mt-2 text-black/70">
+                Start med å opprette din første økt, og bygg den opp med øvelser fra banken.
+              </p>
+              <div className="mt-4 flex flex-wrap gap-3">
+                <Link href="/dashboard/sessions" className="primary-button">
+                  Opprett første økt
+                </Link>
+                <Link href="/dashboard/exercises" className="secondary-button">
+                  Se øvelsesbank
+                </Link>
+              </div>
+            </div>
+          ) : (
             <div className="mt-6 flex flex-col gap-4">
               {latestSessions.map((session) => (
                 <Link

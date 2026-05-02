@@ -507,7 +507,7 @@ export default function SessionDetailPage() {
                 <div className="grid gap-4 md:grid-cols-2">
                   <div>
                     <label htmlFor="coachName" className="field-label">
-                      Trenavn
+                      Trenernavn
                     </label>
                     <input
                       id="coachName"
@@ -533,31 +533,65 @@ export default function SessionDetailPage() {
                 </div>
 
                 <div className="grid gap-4 md:grid-cols-3">
-                  <div>
-                    <label htmlFor="ageGroup" className="field-label">
-                      Alder
-                    </label>
-                    <input
-                      id="ageGroup"
-                      type="text"
-                      value={ageGroup}
-                      onChange={(e) => setAgeGroup(e.target.value)}
-                      className="input-field"
-                    />
-                  </div>
+                <div>
+  <label htmlFor="ageGroup" className="field-label">
+    Alder
+  </label>
+  <select
+    id="ageGroup"
+    value={ageGroup}
+    onChange={(e) => setAgeGroup(e.target.value)}
+    className="select-field"
+  >
+    <option value="">Velg alder</option>
+    {[
+      "5–6 år",
+      "6–7 år",
+      "7–8 år",
+      "8–9 år",
+      "9–10 år",
+      "10–12 år",
+      "12+ år",
+    ].map((option) => (
+      <option key={option} value={option}>
+        {option}
+      </option>
+    ))}
+  </select>
+</div>
 
-                  <div>
-                    <label htmlFor="theme" className="field-label">
-                      Tema
-                    </label>
-                    <input
-                      id="theme"
-                      type="text"
-                      value={theme}
-                      onChange={(e) => setTheme(e.target.value)}
-                      className="input-field"
-                    />
-                  </div>
+<div>
+  <label htmlFor="theme" className="field-label">
+    Tema
+  </label>
+  <select
+    id="theme"
+    value={theme}
+    onChange={(e) => setTheme(e.target.value)}
+    className="select-field"
+  >
+    <option value="">Velg tema</option>
+    {[
+      "Føring",
+      "Pasning",
+      "Mottak",
+      "Avslutning",
+      "Småspill",
+      "1 mot 1",
+      "2 mot 1",
+      "Bevegelse",
+      "Koordinasjon",
+      "Lek",
+      "Oppvarming",
+      "Forsvar",
+      "Angrep",
+    ].map((option) => (
+      <option key={option} value={option}>
+        {option}
+      </option>
+    ))}
+  </select>
+</div>
 
                   <div>
                     <label htmlFor="duration" className="field-label">
@@ -619,7 +653,7 @@ export default function SessionDetailPage() {
                   </div>
 
                   <div className="card-soft">
-                    <h2 className="text-lg font-semibold">Trenavn</h2>
+                    <h2 className="text-lg font-semibold">Trenernavn</h2>
                     <p className="mt-2 text-black/70">
                       {session.coach_name || "Ikke satt"}
                     </p>

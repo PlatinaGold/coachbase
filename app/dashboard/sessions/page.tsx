@@ -19,6 +19,32 @@ type Session = {
   session_goal: string | null;
 };
 
+const AGE_OPTIONS = [
+  "5–6 år",
+  "6–7 år",
+  "7–8 år",
+  "8–9 år",
+  "9–10 år",
+  "10–12 år",
+  "12+ år",
+];
+
+const THEME_OPTIONS = [
+  "Føring",
+  "Pasning",
+  "Mottak",
+  "Avslutning",
+  "Småspill",
+  "1 mot 1",
+  "2 mot 1",
+  "Bevegelse",
+  "Koordinasjon",
+  "Lek",
+  "Oppvarming",
+  "Forsvar",
+  "Angrep",
+];
+
 export default function SessionsPage() {
   const [sessions, setSessions] = useState<Session[]>([]);
   const [loading, setLoading] = useState(true);
@@ -182,7 +208,7 @@ export default function SessionsPage() {
             <div className="grid gap-4 md:grid-cols-2">
               <div>
                 <label htmlFor="coachName" className="field-label">
-                  Trenavn
+                  Trenernavn
                 </label>
                 <input
                   id="coachName"
@@ -209,32 +235,44 @@ export default function SessionsPage() {
               </div>
             </div>
 
-            <div>
-              <label htmlFor="ageGroup" className="field-label">
-                Alder
-              </label>
-              <input
-                id="ageGroup"
-                type="text"
-                value={ageGroup}
-                onChange={(e) => setAgeGroup(e.target.value)}
-                className="input-field"
-                placeholder="For eksempel: 5–8 år"
-              />
-            </div>
+            <div className="grid gap-4 md:grid-cols-2">
+              <div>
+                <label htmlFor="ageGroup" className="field-label">
+                  Alder
+                </label>
+                <select
+                  id="ageGroup"
+                  value={ageGroup}
+                  onChange={(e) => setAgeGroup(e.target.value)}
+                  className="select-field"
+                >
+                  <option value="">Velg alder</option>
+                  {AGE_OPTIONS.map((option) => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-            <div>
-              <label htmlFor="theme" className="field-label">
-                Tema
-              </label>
-              <input
-                id="theme"
-                type="text"
-                value={theme}
-                onChange={(e) => setTheme(e.target.value)}
-                className="input-field"
-                placeholder="For eksempel: føring og lek"
-              />
+              <div>
+                <label htmlFor="theme" className="field-label">
+                  Tema
+                </label>
+                <select
+                  id="theme"
+                  value={theme}
+                  onChange={(e) => setTheme(e.target.value)}
+                  className="select-field"
+                >
+                  <option value="">Velg tema</option>
+                  {THEME_OPTIONS.map((option) => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
 
             <div>

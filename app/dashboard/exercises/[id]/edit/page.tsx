@@ -5,6 +5,34 @@ import { supabase } from "@/lib/supabase";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 
+const AGE_OPTIONS = [
+  "5–6 år",
+  "6–7 år",
+  "7–8 år",
+  "8–9 år",
+  "9–10 år",
+  "10–12 år",
+  "12+ år",
+];
+
+const FOCUS_AREA_OPTIONS = [
+  "Føring",
+  "Pasning",
+  "Mottak",
+  "Avslutning",
+  "Småspill",
+  "1 mot 1",
+  "2 mot 1",
+  "Bevegelse",
+  "Koordinasjon",
+  "Lek",
+  "Oppvarming",
+  "Forsvar",
+  "Angrep",
+];
+
+const DIFFICULTY_OPTIONS = ["Enkel", "Middels", "Avansert"];
+
 export default function EditExercisePage() {
   const params = useParams();
   const router = useRouter();
@@ -47,7 +75,7 @@ export default function EditExercisePage() {
         .eq("user_id", user.id)
         .single();
 
-      if (error) {
+      if (error || !data) {
         setErrorMessage("Fant ikke din øvelse.");
         setLoading(false);
         return;
@@ -162,26 +190,38 @@ export default function EditExercisePage() {
                 <label htmlFor="ageGroup" className="field-label">
                   Alder
                 </label>
-                <input
+                <select
                   id="ageGroup"
-                  type="text"
                   value={ageGroup}
                   onChange={(e) => setAgeGroup(e.target.value)}
-                  className="input-field"
-                />
+                  className="select-field"
+                >
+                  <option value="">Velg alder</option>
+                  {AGE_OPTIONS.map((option) => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div>
                 <label htmlFor="focusArea" className="field-label">
                   Fokusområde
                 </label>
-                <input
+                <select
                   id="focusArea"
-                  type="text"
                   value={focusArea}
                   onChange={(e) => setFocusArea(e.target.value)}
-                  className="input-field"
-                />
+                  className="select-field"
+                >
+                  <option value="">Velg fokusområde</option>
+                  {FOCUS_AREA_OPTIONS.map((option) => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
 
@@ -190,13 +230,19 @@ export default function EditExercisePage() {
                 <label htmlFor="difficulty" className="field-label">
                   Nivå
                 </label>
-                <input
+                <select
                   id="difficulty"
-                  type="text"
                   value={difficulty}
                   onChange={(e) => setDifficulty(e.target.value)}
-                  className="input-field"
-                />
+                  className="select-field"
+                >
+                  <option value="">Velg nivå</option>
+                  {DIFFICULTY_OPTIONS.map((option) => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div>
@@ -281,6 +327,7 @@ export default function EditExercisePage() {
           </form>
 
           {message && <p className="success-message mt-4">{message}</p>}
+          {errorMessage && <p className="error-message mt-4">{errorMessage}</p>}
         </div>
       )}
     </section>
