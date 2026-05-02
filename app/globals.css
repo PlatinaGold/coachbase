@@ -145,3 +145,82 @@ body {
 .meta-label {
   @apply text-sm font-medium uppercase tracking-wide text-black/50;
 }
+
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+@media print {
+  body {
+    background: white !important;
+    color: black !important;
+  }
+
+  header {
+    display: none !important;
+  }
+
+  .print-hide {
+    display: none !important;
+  }
+
+  .print-show {
+    display: block !important;
+  }
+
+  .print-page {
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  .print-card,
+  .card,
+  .card-soft {
+    background: white !important;
+    box-shadow: none !important;
+    border: 1px solid #d1d5db !important;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .page-section,
+  .page-section-narrow {
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  .primary-button,
+  .secondary-button,
+  .danger-button {
+    display: none !important;
+  }
+
+  a {
+    color: black !important;
+    text-decoration: none !important;
+  }
+
+  .print-title {
+    font-size: 28px !important;
+    font-weight: 700 !important;
+    margin-bottom: 8px !important;
+  }
+
+  .print-subtitle {
+    font-size: 14px !important;
+    color: #4b5563 !important;
+    margin-bottom: 20px !important;
+  }
+
+  .print-section-gap {
+    margin-top: 16px !important;
+  }
+}

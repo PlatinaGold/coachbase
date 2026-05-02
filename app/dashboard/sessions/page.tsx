@@ -12,6 +12,11 @@ type Session = {
   duration: number | null;
   notes: string | null;
   created_at: string;
+  session_date: string | null;
+  location: string | null;
+  coach_name: string | null;
+  team_name: string | null;
+  session_goal: string | null;
 };
 
 export default function SessionsPage() {
@@ -23,6 +28,12 @@ export default function SessionsPage() {
   const [theme, setTheme] = useState("");
   const [duration, setDuration] = useState("");
   const [notes, setNotes] = useState("");
+
+  const [sessionDate, setSessionDate] = useState("");
+  const [location, setLocation] = useState("");
+  const [coachName, setCoachName] = useState("");
+  const [teamName, setTeamName] = useState("");
+  const [sessionGoal, setSessionGoal] = useState("");
 
   const [message, setMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
@@ -83,6 +94,11 @@ export default function SessionsPage() {
       theme: theme || null,
       duration: duration ? Number(duration) : null,
       notes: notes || null,
+      session_date: sessionDate || null,
+      location: location || null,
+      coach_name: coachName || null,
+      team_name: teamName || null,
+      session_goal: sessionGoal || null,
     });
 
     if (error) {
@@ -96,6 +112,11 @@ export default function SessionsPage() {
     setTheme("");
     setDuration("");
     setNotes("");
+    setSessionDate("");
+    setLocation("");
+    setCoachName("");
+    setTeamName("");
+    setSessionGoal("");
 
     fetchSessions();
   }
@@ -129,6 +150,65 @@ export default function SessionsPage() {
               />
             </div>
 
+            <div className="grid gap-4 md:grid-cols-2">
+              <div>
+                <label htmlFor="sessionDate" className="field-label">
+                  Dato
+                </label>
+                <input
+                  id="sessionDate"
+                  type="date"
+                  value={sessionDate}
+                  onChange={(e) => setSessionDate(e.target.value)}
+                  className="input-field"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="location" className="field-label">
+                  Sted
+                </label>
+                <input
+                  id="location"
+                  type="text"
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value)}
+                  className="input-field"
+                  placeholder="For eksempel: Atlanten stadion"
+                />
+              </div>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-2">
+              <div>
+                <label htmlFor="coachName" className="field-label">
+                  Trenavn
+                </label>
+                <input
+                  id="coachName"
+                  type="text"
+                  value={coachName}
+                  onChange={(e) => setCoachName(e.target.value)}
+                  className="input-field"
+                  placeholder="For eksempel: John"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="teamName" className="field-label">
+                  Lag / årskull
+                </label>
+                <input
+                  id="teamName"
+                  type="text"
+                  value={teamName}
+                  onChange={(e) => setTeamName(e.target.value)}
+                  className="input-field"
+                  placeholder="For eksempel: G2018"
+                />
+              </div>
+            </div>
+
             <div>
               <label htmlFor="ageGroup" className="field-label">
                 Alder
@@ -154,6 +234,19 @@ export default function SessionsPage() {
                 onChange={(e) => setTheme(e.target.value)}
                 className="input-field"
                 placeholder="For eksempel: føring og lek"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="sessionGoal" className="field-label">
+                Øktmål
+              </label>
+              <textarea
+                id="sessionGoal"
+                value={sessionGoal}
+                onChange={(e) => setSessionGoal(e.target.value)}
+                className="textarea-field"
+                placeholder="For eksempel: Barna skal ha mange ballberøringer og øve på føring med kontroll."
               />
             </div>
 
@@ -190,7 +283,6 @@ export default function SessionsPage() {
           </form>
 
           {message && <p className="success-message mt-4">{message}</p>}
-
           {errorMessage && <p className="error-message mt-4">{errorMessage}</p>}
         </div>
 
@@ -205,7 +297,15 @@ export default function SessionsPage() {
           {loading ? (
             <p className="mt-6 text-black/70">Laster økter...</p>
           ) : sessions.length === 0 ? (
-            <p className="mt-6 text-black/70">Du har ingen økter ennå.</p>
+            <div className="mt-6 rounded-xl border border-dashed border-black/15 bg-[#fafafa] p-6">
+              <h3 className="text-lg font-semibold">Ingen lagrede økter</h3>
+              <p className="mt-2 text-black/70">
+                Fyll ut skjemaet til venstre for å opprette din første treningsøkt.
+              </p>
+              <p className="mt-2 text-sm text-black/55">
+                Tips: Start enkelt med navn, dato, lag og tema.
+              </p>
+            </div>
           ) : (
             <div className="mt-6 flex flex-col gap-4">
               {sessions.map((session) => (
@@ -216,17 +316,16 @@ export default function SessionsPage() {
                 >
                   <h3 className="text-lg font-semibold">{session.title}</h3>
                   <p className="mt-2 text-sm text-black/70">
-                    Alder: {session.age_group || "Ikke satt"}
+                    Lag: {session.team_name || "Ikke satt"}
                   </p>
                   <p className="mt-1 text-sm text-black/70">
                     Tema: {session.theme || "Ikke satt"}
                   </p>
                   <p className="mt-1 text-sm text-black/70">
-                    Varighet:{" "}
-                    {session.duration ? `${session.duration} min` : "Ikke satt"}
+                    Dato: {session.session_date || "Ikke satt"}
                   </p>
-                  <p className="mt-2 text-sm text-black/60">
-                    {session.notes || "Ingen notater"}
+                  <p className="mt-1 text-sm text-black/70">
+                    Varighet: {session.duration ? `${session.duration} min` : "Ikke satt"}
                   </p>
                 </Link>
               ))}

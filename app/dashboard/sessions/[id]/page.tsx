@@ -13,6 +13,11 @@ type Session = {
   duration: number | null;
   notes: string | null;
   created_at: string;
+  session_date: string | null;
+  location: string | null;
+  coach_name: string | null;
+  team_name: string | null;
+  session_goal: string | null;
 };
 
 type SessionExercise = {
@@ -33,9 +38,7 @@ export default function SessionDetailPage() {
   const router = useRouter();
 
   const [session, setSession] = useState<Session | null>(null);
-  const [sessionExercises, setSessionExercises] = useState<SessionExercise[]>(
-    []
-  );
+  const [sessionExercises, setSessionExercises] = useState<SessionExercise[]>([]);
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
   const [message, setMessage] = useState("");
@@ -47,6 +50,11 @@ export default function SessionDetailPage() {
   const [theme, setTheme] = useState("");
   const [duration, setDuration] = useState("");
   const [notes, setNotes] = useState("");
+  const [sessionDate, setSessionDate] = useState("");
+  const [location, setLocation] = useState("");
+  const [coachName, setCoachName] = useState("");
+  const [teamName, setTeamName] = useState("");
+  const [sessionGoal, setSessionGoal] = useState("");
 
   async function loadSessionDetails() {
     setLoading(true);
@@ -71,7 +79,7 @@ export default function SessionDetailPage() {
       .eq("user_id", user.id)
       .single();
 
-    if (error) {
+    if (error || !data) {
       setErrorMessage("Fant ikke økten.");
       setLoading(false);
       return;
@@ -83,6 +91,11 @@ export default function SessionDetailPage() {
     setTheme(data.theme || "");
     setDuration(data.duration ? String(data.duration) : "");
     setNotes(data.notes || "");
+    setSessionDate(data.session_date || "");
+    setLocation(data.location || "");
+    setCoachName(data.coach_name || "");
+    setTeamName(data.team_name || "");
+    setSessionGoal(data.session_goal || "");
 
     const { data: exercisesData, error: exercisesError } = await supabase
       .from("session_exercises")
@@ -141,6 +154,11 @@ export default function SessionDetailPage() {
         theme: theme || null,
         duration: duration ? Number(duration) : null,
         notes: notes || null,
+        session_date: sessionDate || null,
+        location: location || null,
+        coach_name: coachName || null,
+        team_name: teamName || null,
+        session_goal: sessionGoal || null,
       })
       .eq("id", session.id)
       .eq("user_id", user.id);
@@ -157,10 +175,78 @@ export default function SessionDetailPage() {
       theme: theme || null,
       duration: duration ? Number(duration) : null,
       notes: notes || null,
+      session_date: sessionDate || null,
+      location: location || null,
+      coach_name: coachName || null,
+      team_name: teamName || null,
+      session_goal: sessionGoal || null,
     });
 
     setMessage("Økten er oppdatert.");
     setIsEditing(false);
+  }
+
+  async function handleDuplicateSession() {
+    setMessage("");
+    setErrorMessage("");
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user || !session) {
+      setErrorMessage("Du må være logget inn.");
+      return;
+    }
+
+    const duplicatedTitle = `${session.title} (kopi)`;
+
+    const { data: newSession, error: sessionError } = await supabase
+      .from("sessions")
+      .insert({
+        user_id: user.id,
+        title: duplicatedTitle,
+        age_group: session.age_group,
+        theme: session.theme,
+        duration: session.duration,
+        notes: session.notes,
+        session_date: session.session_date,
+        location: session.location,
+        coach_name: session.coach_name,
+        team_name: session.team_name,
+        session_goal: session.session_goal,
+      })
+      .select()
+      .single();
+
+    if (sessionError || !newSession) {
+      setErrorMessage(sessionError?.message || "Kunne ikke duplisere økten.");
+      return;
+    }
+
+    if (sessionExercises.length > 0) {
+      const rowsToInsert = sessionExercises
+        .filter((item) => item.exercise?.id)
+        .map((item, index) => ({
+          session_id: newSession.id,
+          exercise_id: item.exercise!.id,
+          user_id: user.id,
+          sort_order: item.sort_order ?? index + 1,
+        }));
+
+      if (rowsToInsert.length > 0) {
+        const { error: exercisesError } = await supabase
+          .from("session_exercises")
+          .insert(rowsToInsert);
+
+        if (exercisesError) {
+          setErrorMessage(exercisesError.message);
+          return;
+        }
+      }
+    }
+
+    router.push(`/dashboard/sessions/${newSession.id}`);
   }
 
   async function handleDeleteSession() {
@@ -326,6 +412,17 @@ export default function SessionDetailPage() {
               {isEditing ? "Avbryt" : "Rediger økt"}
             </button>
 
+            <Link
+              href={`/dashboard/sessions/${params.id}/view`}
+              className="secondary-button"
+            >
+              Trener-visning
+            </Link>
+
+            <button onClick={handleDuplicateSession} className="secondary-button">
+              Dupliser økt
+            </button>
+
             <button onClick={handleDeleteSession} className="danger-button">
               Slett økt
             </button>
@@ -364,10 +461,7 @@ export default function SessionDetailPage() {
 
           <div className="card card-padding-lg">
             {isEditing ? (
-              <form
-                onSubmit={handleUpdateSession}
-                className="grid gap-4"
-              >
+              <form onSubmit={handleUpdateSession} className="grid gap-4">
                 <div>
                   <label htmlFor="title" className="field-label">
                     Navn på økt
@@ -380,6 +474,62 @@ export default function SessionDetailPage() {
                     className="input-field"
                     required
                   />
+                </div>
+
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div>
+                    <label htmlFor="sessionDate" className="field-label">
+                      Dato
+                    </label>
+                    <input
+                      id="sessionDate"
+                      type="date"
+                      value={sessionDate}
+                      onChange={(e) => setSessionDate(e.target.value)}
+                      className="input-field"
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="location" className="field-label">
+                      Sted
+                    </label>
+                    <input
+                      id="location"
+                      type="text"
+                      value={location}
+                      onChange={(e) => setLocation(e.target.value)}
+                      className="input-field"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div>
+                    <label htmlFor="coachName" className="field-label">
+                      Trenavn
+                    </label>
+                    <input
+                      id="coachName"
+                      type="text"
+                      value={coachName}
+                      onChange={(e) => setCoachName(e.target.value)}
+                      className="input-field"
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="teamName" className="field-label">
+                      Lag / årskull
+                    </label>
+                    <input
+                      id="teamName"
+                      type="text"
+                      value={teamName}
+                      onChange={(e) => setTeamName(e.target.value)}
+                      className="input-field"
+                    />
+                  </div>
                 </div>
 
                 <div className="grid gap-4 md:grid-cols-3">
@@ -424,6 +574,18 @@ export default function SessionDetailPage() {
                 </div>
 
                 <div>
+                  <label htmlFor="sessionGoal" className="field-label">
+                    Øktmål
+                  </label>
+                  <textarea
+                    id="sessionGoal"
+                    value={sessionGoal}
+                    onChange={(e) => setSessionGoal(e.target.value)}
+                    className="textarea-field"
+                  />
+                </div>
+
+                <div>
                   <label htmlFor="notes" className="field-label">
                     Notater
                   </label>
@@ -443,6 +605,34 @@ export default function SessionDetailPage() {
               <>
                 <div className="grid gap-6 md:grid-cols-2">
                   <div className="card-soft">
+                    <h2 className="text-lg font-semibold">Dato</h2>
+                    <p className="mt-2 text-black/70">
+                      {session.session_date || "Ikke satt"}
+                    </p>
+                  </div>
+
+                  <div className="card-soft">
+                    <h2 className="text-lg font-semibold">Sted</h2>
+                    <p className="mt-2 text-black/70">
+                      {session.location || "Ikke satt"}
+                    </p>
+                  </div>
+
+                  <div className="card-soft">
+                    <h2 className="text-lg font-semibold">Trenavn</h2>
+                    <p className="mt-2 text-black/70">
+                      {session.coach_name || "Ikke satt"}
+                    </p>
+                  </div>
+
+                  <div className="card-soft">
+                    <h2 className="text-lg font-semibold">Lag / årskull</h2>
+                    <p className="mt-2 text-black/70">
+                      {session.team_name || "Ikke satt"}
+                    </p>
+                  </div>
+
+                  <div className="card-soft">
                     <h2 className="text-lg font-semibold">Alder</h2>
                     <p className="mt-2 text-black/70">
                       {session.age_group || "Ikke satt"}
@@ -459,9 +649,7 @@ export default function SessionDetailPage() {
                   <div className="card-soft">
                     <h2 className="text-lg font-semibold">Varighet</h2>
                     <p className="mt-2 text-black/70">
-                      {session.duration
-                        ? `${session.duration} min`
-                        : "Ikke satt"}
+                      {session.duration ? `${session.duration} min` : "Ikke satt"}
                     </p>
                   </div>
 
@@ -469,6 +657,13 @@ export default function SessionDetailPage() {
                     <h2 className="text-lg font-semibold">Status</h2>
                     <p className="mt-2 text-black/70">Klar til bruk</p>
                   </div>
+                </div>
+
+                <div className="mt-6 card-soft">
+                  <h2 className="text-lg font-semibold">Øktmål</h2>
+                  <p className="mt-2 whitespace-pre-line text-black/70">
+                    {session.session_goal || "Ikke satt"}
+                  </p>
                 </div>
 
                 <div className="mt-6 card-soft">
@@ -527,7 +722,7 @@ export default function SessionDetailPage() {
                       </p>
                     </div>
 
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
                       <button
                         onClick={() => handleMoveExercise(item.id, "up")}
                         className="secondary-button"

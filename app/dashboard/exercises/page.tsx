@@ -27,6 +27,7 @@ export default function ExercisesPage() {
   const [selectedDifficulty, setSelectedDifficulty] = useState("Alle");
   const [selectedOwnership, setSelectedOwnership] = useState("Alle");
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedDuration, setSelectedDuration] = useState("Alle");
 
   async function fetchExercises() {
     setLoading(true);
@@ -87,34 +88,48 @@ export default function ExercisesPage() {
     return exercises.filter((exercise) => {
       const matchesAge =
         selectedAge === "Alle" || exercise.age_group === selectedAge;
-
+  
       const matchesFocus =
         selectedFocus === "Alle" || exercise.focus_area === selectedFocus;
-
+  
       const matchesDifficulty =
         selectedDifficulty === "Alle" ||
         exercise.difficulty === selectedDifficulty;
-
+  
       const normalizedSearch = searchTerm.trim().toLowerCase();
-
+  
       const matchesSearch =
         normalizedSearch === "" ||
         exercise.title.toLowerCase().includes(normalizedSearch) ||
         (exercise.focus_area || "").toLowerCase().includes(normalizedSearch);
-
+  
       const matchesOwnership =
         selectedOwnership === "Alle" ||
         (selectedOwnership === "Felles øvelse" && exercise.is_public === true) ||
         (selectedOwnership === "Min øvelse" &&
           exercise.is_public === false &&
           exercise.user_id === currentUserId);
-
+  
+      const matchesDuration =
+        selectedDuration === "Alle" ||
+        (selectedDuration === "Under 10 min" &&
+          (exercise.duration ?? 0) < 10) ||
+        (selectedDuration === "10–15 min" &&
+          (exercise.duration ?? 0) >= 10 &&
+          (exercise.duration ?? 0) <= 15) ||
+        (selectedDuration === "15–20 min" &&
+          (exercise.duration ?? 0) > 15 &&
+          (exercise.duration ?? 0) <= 20) ||
+        (selectedDuration === "20+ min" &&
+          (exercise.duration ?? 0) > 20);
+  
       return (
         matchesAge &&
         matchesFocus &&
         matchesDifficulty &&
         matchesSearch &&
-        matchesOwnership
+        matchesOwnership &&
+        matchesDuration
       );
     });
   }, [
@@ -123,6 +138,7 @@ export default function ExercisesPage() {
     selectedFocus,
     selectedDifficulty,
     selectedOwnership,
+    selectedDuration,
     searchTerm,
     currentUserId,
   ]);
@@ -137,7 +153,7 @@ export default function ExercisesPage() {
           </p>
         </div>
 
-        <Link href="/dashboard/exercises/new" className="primary-button">
+        <Link href="/dashboard/exercises/new" className="primary-button text-center">
           Ny øvelse
         </Link>
       </div>
@@ -150,7 +166,7 @@ export default function ExercisesPage() {
           </span>
         </div>
 
-        <div className="mt-6 grid gap-4 md:grid-cols-5">
+        <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-6">
           <div>
             <label htmlFor="searchFilter" className="field-label">
               Søk
@@ -220,6 +236,24 @@ export default function ExercisesPage() {
           </div>
 
           <div>
+  <label htmlFor="durationFilter" className="field-label">
+    Varighet
+  </label>
+  <select
+    id="durationFilter"
+    value={selectedDuration}
+    onChange={(e) => setSelectedDuration(e.target.value)}
+    className="select-field"
+  >
+    <option value="Alle">Alle</option>
+    <option value="Under 10 min">Under 10 min</option>
+    <option value="10–15 min">10–15 min</option>
+    <option value="15–20 min">15–20 min</option>
+    <option value="20+ min">20+ min</option>
+  </select>
+</div>
+
+          <div>
             <label htmlFor="ownershipFilter" className="field-label">
               Type øvelse
             </label>
@@ -242,6 +276,7 @@ export default function ExercisesPage() {
             setSelectedFocus("Alle");
             setSelectedDifficulty("Alle");
             setSelectedOwnership("Alle");
+            setSelectedDuration("Alle");
             setSearchTerm("");
           }}
           className="secondary-button mt-5"
@@ -255,7 +290,34 @@ export default function ExercisesPage() {
       ) : errorMessage ? (
         <p className="error-message mt-8">{errorMessage}</p>
       ) : filteredExercises.length === 0 ? (
-        <p className="mt-8 text-black/70">Ingen øvelser matcher filtrene.</p>
+        <div className="mt-8 rounded-xl border border-dashed border-black/15 bg-white p-6">
+          <h3 className="text-lg font-semibold">Ingen øvelser matcher filtrene</h3>
+          <p className="mt-2 text-black/70">
+            Prøv å justere søket eller nullstille ett eller flere filtre.
+          </p>
+          <div className="mt-4 flex flex-wrap gap-3">
+            <button
+              onClick={() => {
+                setSelectedAge("Alle");
+                setSelectedFocus("Alle");
+                setSelectedDifficulty("Alle");
+                setSelectedOwnership("Alle");
+                setSelectedDuration("Alle");
+                setSearchTerm("");
+              }}
+              className="secondary-button"
+            >
+              Nullstill filtre
+            </button>
+      
+            <Link
+              href="/dashboard/exercises/new"
+              className="primary-button"
+            >
+              Lag ny øvelse
+            </Link>
+          </div>
+        </div>
       ) : (
         <div className="mt-10 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
           {filteredExercises.map((exercise) => (

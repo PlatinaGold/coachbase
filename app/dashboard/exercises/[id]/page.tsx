@@ -137,6 +137,46 @@ export default function ExerciseDetailPage() {
     setSelectedSessionId("");
   }
 
+  async function handleDuplicateExercise() {
+    setMessage("");
+    setErrorMessage("");
+  
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+  
+    if (!user || !exercise) {
+      setErrorMessage("Du må være logget inn.");
+      return;
+    }
+  
+    const { data: newExercise, error } = await supabase
+      .from("exercises")
+      .insert({
+        user_id: user.id,
+        is_public: false,
+        title: `${exercise.title} (kopi)`,
+        age_group: exercise.age_group,
+        focus_area: exercise.focus_area,
+        difficulty: exercise.difficulty,
+        players: exercise.players,
+        duration: exercise.duration,
+        equipment: exercise.equipment,
+        explanation: exercise.explanation,
+        coaching_points: exercise.coaching_points,
+        organization: exercise.organization,
+      })
+      .select()
+      .single();
+  
+    if (error || !newExercise) {
+      setErrorMessage(error?.message || "Kunne ikke duplisere øvelsen.");
+      return;
+    }
+  
+    router.push(`/dashboard/exercises/${newExercise.id}`);
+  }
+
   async function handleDeleteExercise() {
     if (!exercise) return;
 
@@ -205,19 +245,26 @@ export default function ExerciseDetailPage() {
         </div>
 
         {isOwnExercise && (
-          <div className="flex flex-wrap gap-3">
-            <Link
-              href={`/dashboard/exercises/${params.id}/edit`}
-              className="primary-button"
-            >
-              Rediger øvelse
-            </Link>
+  <div className="flex flex-wrap gap-3">
+    <Link
+      href={`/dashboard/exercises/${params.id}/edit`}
+      className="primary-button"
+    >
+      Rediger øvelse
+    </Link>
 
-            <button onClick={handleDeleteExercise} className="danger-button">
-              Slett øvelse
-            </button>
-          </div>
-        )}
+    <button
+      onClick={handleDuplicateExercise}
+      className="secondary-button"
+    >
+      Dupliser øvelse
+    </button>
+
+    <button onClick={handleDeleteExercise} className="danger-button">
+      Slett øvelse
+    </button>
+  </div>
+)}
       </div>
 
       {loading ? (
