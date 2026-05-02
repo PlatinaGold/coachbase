@@ -154,7 +154,7 @@ export default function SessionTrainerViewPage() {
 
           <p className="print-subtitle">
             Dato: {session.session_date || "Ikke satt"} · Sted:{" "}
-            {session.location || "Ikke satt"} · Trenavn:{" "}
+            {session.location || "Ikke satt"} · Trenernavn:{" "}
             {session.coach_name || "Ikke satt"} · Lag:{" "}
             {session.team_name || "Ikke satt"}
           </p>
@@ -193,7 +193,7 @@ export default function SessionTrainerViewPage() {
             </div>
 
             <div className="card-soft">
-              <p className="meta-label">Trenavn</p>
+              <p className="meta-label">Trenernavn</p>
               <p className="mt-2 text-lg font-semibold">
                 {session.coach_name || "Ikke satt"}
               </p>
