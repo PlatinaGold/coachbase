@@ -1,111 +1,85 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
-import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
+import ExerciseCanvas from "@/components/ExerciseCanvas";
 
-const AGE_OPTIONS = [
-  "5–6 år",
-  "6–7 år",
-  "7–8 år",
-  "8–9 år",
-  "9–10 år",
-  "10–12 år",
-  "12+ år",
-];
+type CanvasItem = {
+  id: number;
+  type: "player" | "cone" | "ball";
+  x: number;
+  y: number;
+  label?: string;
+};
 
-const FOCUS_AREA_OPTIONS = [
-  "Føring",
-  "Pasning",
-  "Mottak",
-  "Avslutning",
-  "Småspill",
-  "1 mot 1",
-  "2 mot 1",
-  "Bevegelse",
-  "Koordinasjon",
-  "Lek",
-  "Oppvarming",
-  "Forsvar",
-  "Angrep",
-];
+type Exercise = {
+  id: number;
+  title: string;
+  age_group: string | null;
+  focus_area: string | null;
+  difficulty: string | null;
+  players: string | null;
+  duration: number | null;
+  equipment: string | null;
+  explanation: string | null;
+  coaching_points: string | null;
+  organization: string | null;
+  user_id: string | null;
+  is_public: boolean | null;
+  canvas_data: CanvasItem[] | null;
+};
 
-const DIFFICULTY_OPTIONS = ["Enkel", "Middels", "Avansert"];
-
-export default function EditExercisePage() {
+export default function ExerciseDetailPage() {
   const params = useParams();
   const router = useRouter();
 
-  const [title, setTitle] = useState("");
-  const [ageGroup, setAgeGroup] = useState("");
-  const [focusArea, setFocusArea] = useState("");
-  const [difficulty, setDifficulty] = useState("");
-  const [players, setPlayers] = useState("");
-  const [duration, setDuration] = useState("");
-  const [equipment, setEquipment] = useState("");
-  const [explanation, setExplanation] = useState("");
-  const [coachingPoints, setCoachingPoints] = useState("");
-  const [organization, setOrganization] = useState("");
-
+  const [exercise, setExercise] = useState<Exercise | null>(null);
+  const [currentUserId, setCurrentUserId] = useState("");
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  const [message, setMessage] = useState("");
 
-  useEffect(() => {
-    async function fetchExercise() {
-      setLoading(true);
-      setErrorMessage("");
+  async function loadExercise() {
+    setLoading(true);
+    setErrorMessage("");
 
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
-      if (!user) {
-        setErrorMessage("Du må være logget inn.");
-        setLoading(false);
-        return;
-      }
+    setCurrentUserId(user?.id || "");
 
-      const { data, error } = await supabase
-        .from("exercises")
-        .select("*")
-        .eq("id", Number(params.id))
-        .eq("user_id", user.id)
-        .single();
+    const { data, error } = await supabase
+      .from("exercises")
+      .select("*")
+      .eq("id", Number(params.id))
+      .single();
 
-      if (error || !data) {
-        setErrorMessage("Fant ikke din øvelse.");
-        setLoading(false);
-        return;
-      }
-
-      setTitle(data.title || "");
-      setAgeGroup(data.age_group || "");
-      setFocusArea(data.focus_area || "");
-      setDifficulty(data.difficulty || "");
-      setPlayers(data.players || "");
-      setDuration(data.duration ? String(data.duration) : "");
-      setEquipment(data.equipment || "");
-      setExplanation(data.explanation || "");
-      setCoachingPoints(data.coaching_points || "");
-      setOrganization(data.organization || "");
-
+    if (error || !data) {
+      setErrorMessage("Fant ikke øvelsen.");
       setLoading(false);
+      return;
     }
 
+    setExercise(data as Exercise);
+    setLoading(false);
+  }
+
+  useEffect(() => {
     if (params?.id) {
-      fetchExercise();
+      loadExercise();
     }
   }, [params]);
 
-  async function handleUpdateExercise(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
+  async function handleDeleteExercise() {
+    if (!exercise) return;
 
-    setSaving(true);
-    setMessage("");
-    setErrorMessage("");
+    const confirmed = window.confirm(
+      "Er du sikker på at du vil slette denne øvelsen?"
+    );
+
+    if (!confirmed) return;
 
     const {
       data: { user },
@@ -113,223 +87,225 @@ export default function EditExercisePage() {
 
     if (!user) {
       setErrorMessage("Du må være logget inn.");
-      setSaving(false);
       return;
     }
 
     const { error } = await supabase
       .from("exercises")
-      .update({
-        title,
-        age_group: ageGroup || null,
-        focus_area: focusArea || null,
-        difficulty: difficulty || null,
-        players: players || null,
-        duration: duration ? Number(duration) : null,
-        equipment: equipment || null,
-        explanation: explanation || null,
-        coaching_points: coachingPoints || null,
-        organization: organization || null,
-      })
-      .eq("id", Number(params.id))
+      .delete()
+      .eq("id", exercise.id)
       .eq("user_id", user.id);
 
     if (error) {
       setErrorMessage(error.message);
-      setSaving(false);
       return;
     }
 
-    setMessage("Øvelsen ble oppdatert.");
-    setSaving(false);
-
-    setTimeout(() => {
-      router.push(`/dashboard/exercises/${params.id}`);
-    }, 800);
+    router.push("/dashboard/exercises");
   }
 
+  async function handleDuplicateExercise() {
+    if (!exercise) return;
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      setErrorMessage("Du må være logget inn.");
+      return;
+    }
+
+    const { data: newExercise, error } = await supabase
+      .from("exercises")
+      .insert({
+        user_id: user.id,
+        is_public: false,
+        title: `${exercise.title} (kopi)`,
+        age_group: exercise.age_group,
+        focus_area: exercise.focus_area,
+        difficulty: exercise.difficulty,
+        players: exercise.players,
+        duration: exercise.duration,
+        equipment: exercise.equipment,
+        explanation: exercise.explanation,
+        coaching_points: exercise.coaching_points,
+        organization: exercise.organization,
+        canvas_data: exercise.canvas_data,
+      })
+      .select()
+      .single();
+
+    if (error || !newExercise) {
+      setErrorMessage(error?.message || "Kunne ikke duplisere øvelsen.");
+      return;
+    }
+
+    router.push(`/dashboard/exercises/${newExercise.id}`);
+  }
+
+  const isOwnExercise =
+    exercise?.is_public === false && exercise?.user_id === currentUserId;
+
+  const canvasItems =
+    Array.isArray(exercise?.canvas_data) && exercise.canvas_data.length > 0
+      ? exercise.canvas_data
+      : [];
+
   return (
-    <section className="page-section-narrow">
+    <section className="page-section">
       <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
         <div>
-          <h1 className="page-title">Rediger øvelse</h1>
-          <p className="page-subtitle">Oppdater din egen øvelse.</p>
+          <Link
+            href="/dashboard/exercises"
+            className="text-sm font-medium text-black/60 hover:text-black"
+          >
+            ← Tilbake til øvelsesbank
+          </Link>
+
+          {!loading && exercise && (
+            <>
+              <h1 className="page-title mt-4">{exercise.title}</h1>
+              <p className="page-subtitle">
+                {exercise.is_public ? "Felles øvelse" : "Egen øvelse"}
+              </p>
+            </>
+          )}
         </div>
 
-        <Link
-          href={`/dashboard/exercises/${params.id}`}
-          className="secondary-button"
-        >
-          Tilbake
-        </Link>
+        {!loading && exercise && isOwnExercise && (
+          <div className="flex flex-wrap gap-3">
+            <Link
+              href={`/dashboard/exercises/${params.id}/edit`}
+              className="primary-button"
+            >
+              Rediger øvelse
+            </Link>
+
+            <button
+              onClick={handleDuplicateExercise}
+              className="secondary-button"
+            >
+              Dupliser øvelse
+            </button>
+
+            <button onClick={handleDeleteExercise} className="danger-button">
+              Slett øvelse
+            </button>
+          </div>
+        )}
       </div>
 
       {loading ? (
         <p className="mt-8 text-black/70">Laster øvelse...</p>
       ) : errorMessage ? (
         <p className="error-message mt-8">{errorMessage}</p>
-      ) : (
-        <div className="card card-padding-lg mt-10">
-          <form onSubmit={handleUpdateExercise} className="grid gap-4">
-            <div>
-              <label htmlFor="title" className="field-label">
-                Tittel
-              </label>
-              <input
-                id="title"
-                type="text"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                className="input-field"
-                required
-              />
-            </div>
-
+      ) : exercise ? (
+        <div className="mt-8 grid gap-8 xl:grid-cols-[1.05fr_0.95fr]">
+          <div className="space-y-6">
             <div className="grid gap-4 md:grid-cols-2">
-              <div>
-                <label htmlFor="ageGroup" className="field-label">
-                  Alder
-                </label>
-                <select
-                  id="ageGroup"
-                  value={ageGroup}
-                  onChange={(e) => setAgeGroup(e.target.value)}
-                  className="select-field"
-                >
-                  <option value="">Velg alder</option>
-                  {AGE_OPTIONS.map((option) => (
-                    <option key={option} value={option}>
-                      {option}
-                    </option>
-                  ))}
-                </select>
+              <div className="card-soft">
+                <h2 className="text-lg font-semibold">Alder</h2>
+                <p className="mt-2 text-black/70">
+                  {exercise.age_group || "Ikke satt"}
+                </p>
               </div>
 
-              <div>
-                <label htmlFor="focusArea" className="field-label">
-                  Fokusområde
-                </label>
-                <select
-                  id="focusArea"
-                  value={focusArea}
-                  onChange={(e) => setFocusArea(e.target.value)}
-                  className="select-field"
-                >
-                  <option value="">Velg fokusområde</option>
-                  {FOCUS_AREA_OPTIONS.map((option) => (
-                    <option key={option} value={option}>
-                      {option}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            <div className="grid gap-4 md:grid-cols-3">
-              <div>
-                <label htmlFor="difficulty" className="field-label">
-                  Nivå
-                </label>
-                <select
-                  id="difficulty"
-                  value={difficulty}
-                  onChange={(e) => setDifficulty(e.target.value)}
-                  className="select-field"
-                >
-                  <option value="">Velg nivå</option>
-                  {DIFFICULTY_OPTIONS.map((option) => (
-                    <option key={option} value={option}>
-                      {option}
-                    </option>
-                  ))}
-                </select>
+              <div className="card-soft">
+                <h2 className="text-lg font-semibold">Fokusområde</h2>
+                <p className="mt-2 text-black/70">
+                  {exercise.focus_area || "Ikke satt"}
+                </p>
               </div>
 
-              <div>
-                <label htmlFor="players" className="field-label">
-                  Spillere
-                </label>
-                <input
-                  id="players"
-                  type="text"
-                  value={players}
-                  onChange={(e) => setPlayers(e.target.value)}
-                  className="input-field"
-                />
+              <div className="card-soft">
+                <h2 className="text-lg font-semibold">Nivå</h2>
+                <p className="mt-2 text-black/70">
+                  {exercise.difficulty || "Ikke satt"}
+                </p>
               </div>
 
-              <div>
-                <label htmlFor="duration" className="field-label">
-                  Varighet
-                </label>
-                <input
-                  id="duration"
-                  type="number"
-                  value={duration}
-                  onChange={(e) => setDuration(e.target.value)}
-                  className="input-field"
-                />
+              <div className="card-soft">
+                <h2 className="text-lg font-semibold">Spillere</h2>
+                <p className="mt-2 text-black/70">
+                  {exercise.players || "Ikke satt"}
+                </p>
+              </div>
+
+              <div className="card-soft">
+                <h2 className="text-lg font-semibold">Varighet</h2>
+                <p className="mt-2 text-black/70">
+                  {exercise.duration ? `${exercise.duration} min` : "Ikke satt"}
+                </p>
+              </div>
+
+              <div className="card-soft">
+                <h2 className="text-lg font-semibold">Utstyr</h2>
+                <p className="mt-2 text-black/70">
+                  {exercise.equipment || "Ikke satt"}
+                </p>
               </div>
             </div>
 
-            <div>
-              <label htmlFor="equipment" className="field-label">
-                Utstyr
-              </label>
-              <input
-                id="equipment"
-                type="text"
-                value={equipment}
-                onChange={(e) => setEquipment(e.target.value)}
-                className="input-field"
+            <div className="card-soft">
+              <h2 className="text-lg font-semibold">Forklaring</h2>
+              <p className="mt-2 whitespace-pre-line text-black/70">
+                {exercise.explanation || "Ingen forklaring"}
+              </p>
+            </div>
+
+            <div className="card-soft">
+              <h2 className="text-lg font-semibold">Coachingpunkter</h2>
+              <p className="mt-2 whitespace-pre-line text-black/70">
+                {exercise.coaching_points || "Ingen coachingpunkter"}
+              </p>
+            </div>
+
+            <div className="card-soft">
+              <h2 className="text-lg font-semibold">Organisering</h2>
+              <p className="mt-2 whitespace-pre-line text-black/70">
+                {exercise.organization || "Ingen organisering"}
+              </p>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            {canvasItems.length > 0 ? (
+              <ExerciseCanvas
+                items={canvasItems}
+                title="Visuell skisse"
+                interactive={false}
               />
+            ) : (
+              <div className="card card-padding">
+                <h2 className="section-title">Ingen skisse lagt til</h2>
+                <p className="mt-3 text-black/70">
+                  Denne øvelsen har foreløpig ingen visuell skisse.
+                </p>
+
+                {isOwnExercise && (
+                  <div className="mt-4">
+                    <Link
+                      href={`/dashboard/exercises/${params.id}/edit`}
+                      className="primary-button"
+                    >
+                      Legg til skisse
+                    </Link>
+                  </div>
+                )}
+              </div>
+            )}
+
+            <div className="card card-padding">
+              <h3 className="text-lg font-semibold">Skisseinfo</h3>
+              <p className="mt-3 text-black/70">
+                Skissen viser en enkel oppstilling av spillere, kjegler og ball
+                for denne øvelsen.
+              </p>
             </div>
-
-            <div>
-              <label htmlFor="explanation" className="field-label">
-                Forklaring
-              </label>
-              <textarea
-                id="explanation"
-                value={explanation}
-                onChange={(e) => setExplanation(e.target.value)}
-                className="textarea-field"
-              />
-            </div>
-
-            <div>
-              <label htmlFor="coachingPoints" className="field-label">
-                Coachingpunkter
-              </label>
-              <textarea
-                id="coachingPoints"
-                value={coachingPoints}
-                onChange={(e) => setCoachingPoints(e.target.value)}
-                className="textarea-field"
-              />
-            </div>
-
-            <div>
-              <label htmlFor="organization" className="field-label">
-                Organisering
-              </label>
-              <textarea
-                id="organization"
-                value={organization}
-                onChange={(e) => setOrganization(e.target.value)}
-                className="textarea-field"
-              />
-            </div>
-
-            <button type="submit" disabled={saving} className="primary-button">
-              {saving ? "Lagrer..." : "Lagre endringer"}
-            </button>
-          </form>
-
-          {message && <p className="success-message mt-4">{message}</p>}
-          {errorMessage && <p className="error-message mt-4">{errorMessage}</p>}
+          </div>
         </div>
-      )}
+      ) : null}
     </section>
   );
 }
